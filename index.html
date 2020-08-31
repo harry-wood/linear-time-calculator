@@ -1,0 +1,176 @@
+<html>
+  <head>
+    <title>Linear time calculator</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+    body {
+        background: WHITE;
+        font-family: Verdana, Helvetica, Arial, sans-serif;
+    }
+    label {
+    	font-weight:bold;
+    }
+    input {
+        font-size:1.1em;
+    }
+    .valid {
+        border: solid 2px green;
+    }
+    .invalid {
+        border: solid 2px red;
+    }
+    .info {
+        background:#EEF;
+        padding: 4px;
+        margin-top:0px;
+    }
+    </style>
+    <script>
+    function recalculate() {
+      startDateElem = document.getElementById('startDate');
+      startValueElem = document.getElementById('startValue');
+      currentDateElem = document.getElementById('currentDate');
+      currentValueElem = document.getElementById('currentValue');
+      endValueElem = document.getElementById('endValue');
+      validateDateInput(startDateElem);
+      validateNumberInput(startValueElem);
+      validateDateInput(currentDateElem);
+      validateNumberInput(currentValueElem);
+      validateNumberInput(endValueElem);
+
+      timeDiff = 0;
+
+      var startDate = new Date(startDateElem.value);
+      var currentDate = new Date(currentDateElem.value);
+      if (startDate instanceof Date && !isNaN(startDate) && currentDate instanceof Date && !isNaN(currentDate)) {
+        timeDiff = currentDate - startDate;
+        if (timeDiff < 0) {
+          document.getElementById('runtime').innerText = "Start date is after the current date";
+        } else {
+          var msec = timeDiff;
+          var dy = Math.floor(msec / 1000 / 60 / 60 / 24);
+          msec -= dy * 1000 * 60 * 60 * 24;
+          var hh = Math.floor(msec / 1000 / 60 / 60);
+          msec -= hh * 1000 * 60 * 60;
+          var mm = Math.floor(msec / 1000 / 60);
+          msec -= mm * 1000 * 60;
+          var ss = Math.floor(msec / 1000);
+          msec -= ss * 1000;
+          document.getElementById('runtime').innerText = "Running so far for " + dy + " days, " + hh + " hours, " + mm + " minutes, " + ss + " seconds";
+        }
+      }
+
+      if (currentValueElem.value!="" && !isNaN(currentValueElem.value) && startValueElem.value!="" && !isNaN(startValueElem.value)) {
+        currentDiff = currentValueElem.value - startValueElem.value;
+        t = "";
+        if (currentDiff!=currentValueElem.value) t += "Progressed by " + currentDiff + "<br>";
+
+        if (timeDiff > 0) {
+          rate_per_millisecond = currentDiff / timeDiff;
+          rate_per_second = rate_per_millisecond * 1000;
+          rate_per_minute = rate_per_second * 60;
+          rate_per_hour = rate_per_minute * 60;
+          rate_per_day = rate_per_hour * 24;
+
+          t += "Progess rate:<br>";
+          t += significant_digits(rate_per_millisecond) + " per millisecond<br>";
+          t += significant_digits(rate_per_second) + " per second<br>";
+          t += significant_digits(rate_per_minute) + " per minute<br>";
+          t += significant_digits(rate_per_hour) + " per hour<br>";
+          t += significant_digits(rate_per_day) + " per day";
+
+          document.getElementById('rate').innerHTML = t;
+
+          if (endValueElem.value!="" && !isNaN(endValueElem.value)) {
+            totalDiff = endValueElem.value - startValueElem.value;
+            remainingDiff = endValueElem.value - currentValueElem.value;
+            t = "Value remaining " + remainingDiff + "<br>";
+            if (totalDiff!=endValueElem.value) t += "Total value diff " + totalDiff + "<br>";
+
+            var endDate = new Date(startDate.getTime() + Math.round(totalDiff / rate_per_millisecond))
+            t += "Estimated finish date time: " + endDate + "<br>";
+
+            t += significant_digits(currentDiff / totalDiff * 100) + "% complete<br><br>";
+
+            t += significant_digits(remainingDiff / rate_per_millisecond) + " milliseconds remaining<br>";
+            t += significant_digits(remainingDiff / rate_per_second) + " seconds remaining<br>";
+            t += significant_digits(remainingDiff / rate_per_minute) + " minutes remaining<br>";
+            t += significant_digits(remainingDiff / rate_per_hour) + " hours remaining<br>";
+            t += significant_digits(remainingDiff / rate_per_day) + " days remaining<br>";
+
+            document.getElementById('eta').innerHTML = t;
+          }
+        }
+      }
+    }
+
+    function validateDateInput(elem) {
+      var d = new Date(elem.value);
+      if (d instanceof Date && !isNaN(d)) {
+        elem.className = "valid";
+      } else {
+        elem.className = "invalid";
+      }
+    }
+
+    function validateNumberInput(elem) {
+      if (elem.value!="" && !isNaN(elem.value)) {
+        elem.className = "valid";
+      } else {
+        elem.className = "invalid";
+      }
+    }
+
+    function significant_digits(flt) {
+      return flt<100 ? flt.toFixed(2) : flt.toFixed(0);
+    }
+
+    function init() {
+      document.getElementById('fields').addEventListener('change', function(event) { recalculate() });
+      document.getElementById('currentDate').value = new Date().toISOString();
+      recalculate();
+    }
+    </script>
+  </head>
+
+<body onLoad="init();">
+  <h1>Linear time calculator</h1>
+
+  <div id="fields">
+    <p>
+      <label for="startDate">Start date time</label><br>
+      <input type="text" size="50" id="startDate"/>
+    </p>
+
+    <p>
+      <label for="startValue">Start value (typically zero)</label><br>
+      <input type="text" value="0" size="20" id="startValue"/>
+    </p>
+
+    <p>
+      <label for="currentDate">Current date time (or date time corresponding to the following value)</label><br>
+      <input type="text" size="50" id="currentDate" class="valid" />
+    </p>
+
+    <p id="runtime" class="info">
+    </p>
+
+    <p>
+      <label for="currentValue">Current value (e.g. count of processed records)</label><br>
+      <input type="text" size="20" id="currentValue"/>
+    </p>
+
+    <p id="rate" class="info">
+    </p>
+
+    <p>
+      <label for="endValue">End value (what are we counting up to?)</label><br>
+      <input type="text" size="20" id="endValue"/>
+    </p>
+
+    <p id="eta" class="info">
+    </p>
+  </div>
+</body>
+</html>
