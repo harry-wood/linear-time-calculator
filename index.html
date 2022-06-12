@@ -111,41 +111,43 @@
         }
       }
 
-      var totalTimeDiff = timeDiff;
-      var headings = ['x', startDate, currentDate];
-      var values = ['value', startValueElem.value, currentValueElem.value];
-      if (endValueElem.value!="" && !isNaN(endValueElem.value)) {
-        headings.push(endDate);
-        values.push(endValueElem.value);
-        totalTimeDiff = endDate - startDate;
-      }
+      if (timeDiff > 0) {
+        var totalTimeDiff = timeDiff;
+        var headings = ['x', startDate, currentDate];
+        var values = ['value', startValueElem.value, currentValueElem.value];
+        if (endValueElem.value!="" && !isNaN(endValueElem.value)) {
+          headings.push(endDate);
+          values.push(endValueElem.value);
+          totalTimeDiff = endDate - startDate;
+        }
 
-      var labelFormat = '%Y-%m-%d %H:%M:%S';
-      if (totalTimeDiff < 1000 * 60 * 60 * 12) labelFormat = '%H:%M:%S';
+        var labelFormat = '%Y-%m-%d %H:%M:%S';
+        if (totalTimeDiff < 1000 * 60 * 60 * 12) labelFormat = '%H:%M:%S';
 
-      var chart = c3.generate({
-      bindto: '#chart',
-        data: {
-          x: 'x',
-          columns: [
-             headings,
-             values
-          ]
-        },
-        axis: {
-          x: {
-            type: 'timeseries',
-            tick: {
-              format: labelFormat,
-              rotate: 90
+        var chart = c3.generate({
+        bindto: '#chart',
+          data: {
+            x: 'x',
+            columns: [
+               headings,
+               values
+            ]
+          },
+          axis: {
+            x: {
+              type: 'timeseries',
+              tick: {
+                format: labelFormat,
+                rotate: 90
+              }
+            },
+            y: {
+              label: { text: 'Value', position: 'outer-middle' }
             }
           },
-          y: {
-            label: { text: 'Value', position: 'outer-middle' }
-          }
-        },
-        legend: { show: false }
-      });
+          legend: { show: false }
+        });
+      }
     }
 
     function validateDateInput(elem) {
